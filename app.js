@@ -1,21 +1,14 @@
 const express = require("express")
+require("dotenv").config()
 const bodyParser = require("body-parser")
 var cors = require("cors")
 const ConnectToDb = require("./DB/database")
 const multer = require("multer")
-const Users = require("./models/UserModel")
-
-require("dotenv").config()
+const passport = require("passport")
+const cookieSession = require("cookie-session")
+const passportStrategy = require("./passport")
 const Auth = require("./controllers/AuthController")
 const Post = require("./controllers/PostController")
-
-const {
-  ValidateLogin,
-  ValidateRegistration,
-} = require("./utils/authentication")
-
-const bcrypt = require("bcrypt")
-const saltRounds = 10
 
 const app = express()
 // parse application/x-www-form-urlencoded
@@ -27,8 +20,24 @@ app.use(
   })
 )
 
-// cors
-app.use(cors())
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["cyberwolve"],
+    maxAge: 24 * 60 * 60 * 100,
+  })
+)
+
+app.use(passport.initialize())
+app.use(passport.session())
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+  })
+)
 
 let Storage = multer.diskStorage({
   destination: "uploads",
